@@ -10,6 +10,57 @@ This is a staged ownership migration, not a single bulk transfer. No repository
 ownership, Cloudflare resource, DNS record, or production deployment changes are
 authorized by this document alone.
 
+## Cybercore Tech front page
+
+The organization should have a Cybercore-specific landing experience based on the
+existing `darkstardevx` profile design, but with organization-owned names, links, and
+assets. The two repositories do not exist yet and should be created during organization
+readiness:
+
+- `cybercore-tech/cybercore-tech` — public organization profile repository. Its root
+  `README.md` becomes the front page shown at `github.com/cybercore-tech`.
+- `cybercore-tech/cybercore-tech.github.io` — optional public GitHub Pages site for a
+  richer, fully interactive landing page at `cybercore-tech.github.io`.
+
+### Recommended presentation model
+
+Use both surfaces with a shared visual system:
+
+- The organization profile README is the concise GitHub-native entry point.
+- The Pages site is the richer interactive version with responsive layout, inline SVG,
+  project filtering, and more detailed navigation.
+- Both surfaces use Cybercore Tech branding and link to organization repositories first.
+- The profile README links to the Pages site when the site is ready.
+
+### Clickable SVG rule
+
+GitHub renders SVGs referenced through `<img>` as images; links embedded inside the SVG
+are not a reliable clickable surface there. The existing profile uses the correct pattern:
+wrap each tile image in an HTML anchor.
+
+```html
+<a href="https://github.com/cybercore-tech/cybercore-mission-control">
+  <img src="./assets/tile-mission-control.svg" alt="Mission Control">
+</a>
+```
+
+Decorative headers can remain plain images. Every project tile must have its own external
+`<a>` wrapper, accessible `alt` text, and an organization URL. On the GitHub Pages site,
+inline SVG anchors may be used for richer interactions, but the README should continue to
+use the wrapper pattern for reliable GitHub rendering.
+
+### Front-page acceptance criteria
+
+- The profile repository is public and named exactly `cybercore-tech`.
+- The README renders correctly on the organization profile without broken assets.
+- Every project tile points to the correct `cybercore-tech/<repository>` URL.
+- No personal-account links remain except intentionally labeled archive/mirror links.
+- SVGs contain no credentials, host-specific tokens, private paths, or telemetry.
+- The Pages site, if enabled, has a working link from the README and passes keyboard and
+  mobile navigation checks.
+- The visual system is shared through checked-in assets rather than manually duplicated
+  screenshots.
+
 ## Guiding principles
 
 1. Inventory before changing anything.
