@@ -23,6 +23,65 @@ authorized by this document alone.
 6. Migrate Mission Control last because it is deployment-critical and currently backs
    the staging observation plane.
 
+## Repository redundancy and synchronization policy
+
+Both namespaces can remain available, but they should not be independently writable.
+The recommended model for each migrated repository is:
+
+```text
+cybercore-tech/project  (canonical, writable)
+          |
+          +--> darkstardevx/project  (read-only mirror / recovery copy)
+          |
+          +--> local bare mirror     (offline recovery copy)
+```
+
+### Canonical repository
+
+- `cybercore-tech/project` is the only repository where normal development occurs.
+- Pull requests, issues, releases, Actions workflows, and deployment decisions belong
+  to the organization repository.
+- Its default branch and tags are protected.
+
+### Personal-account mirror
+
+- Keep `darkstardevx/project` as a separate repository when a second live copy is desired.
+- Synchronize branches and tags from the organization repository after accepted changes
+  and releases.
+- Protect the mirror's default branch and do not accept independent feature work there.
+- Mark the repository README as a mirror and direct contributors to the organization URL.
+- Keep mirror Actions disabled or limited to backup/verification tasks so it cannot deploy
+  or create a second source of truth.
+
+### Synchronization method
+
+Use one-way synchronization from the organization repository. A narrowly scoped GitHub
+App installation token is preferred; a fine-grained token limited to the single personal
+mirror repository is an acceptable interim option. The sync should:
+
+- mirror the canonical default branch and release tags;
+- run after pushes to the canonical repository and on a scheduled repair interval;
+- fail loudly if the mirror cannot be updated;
+- never copy secrets, environment values, deployment credentials, or Actions artifacts;
+- record the source commit SHA and destination result in workflow logs.
+
+Do not implement automatic two-way synchronization. It creates competing histories,
+force-push risks, conflict loops, ambiguous issue/release ownership, and a dangerous
+possibility that an unreviewed personal-namespace change deploys. If work is ever made in
+the personal repository, import it explicitly through a reviewed pull request or manual
+cherry-pick into the canonical repository.
+
+### Transfer versus mirror-preserving migration
+
+If both URLs must remain active, create the organization repository and mirror the verified
+history into it instead of using GitHub's repository-transfer operation. A true GitHub
+transfer is simpler, but the original personal URL generally becomes a redirect rather than
+an independently maintained backup. Choose the mode per repository during O1/O2 and record
+the decision in the inventory.
+
+Redundancy is not complete until the mirror has been restored into a temporary repository or
+local clone and its commit, tag, and release history has been verified.
+
 ## Current state
 
 - Organization: `https://github.com/cybercore-tech`
@@ -155,37 +214,46 @@ cannot be recreated safely, stop that repository and resolve ownership first.
 
 Deliverable: transfer-ready repository checklist signed off by the repository owner.
 
-## Phase 5 — Pilot transfer (O4)
+## Phase 5 — Pilot migration (O4)
 
-Transfer the first low-risk repository and validate the complete lifecycle:
+Migrate the first low-risk repository using the mirror-preserving mode and validate the
+complete lifecycle:
 
-1. Confirm the destination repository exists under `cybercore-tech`.
+1. Create the destination repository under `cybercore-tech` without deleting or transferring
+   the personal source.
 2. Verify default branch, commit history, tags, releases, issues, discussions, and
    visibility.
-3. Verify the old URL redirect and update local remotes only after the destination is
-   confirmed.
-4. Recreate or validate branch protections, rulesets, environments, variables, secrets,
+3. Perform a final source freeze, mirror the verified branches and tags, and record the
+   source and destination head SHAs.
+4. Configure the one-way organization-to-personal mirror and verify a test update.
+5. Recreate or validate branch protections, rulesets, environments, variables, secrets,
    webhooks, deploy keys, and GitHub App access.
-5. Run the full CI workflow from the destination repository.
-6. Exercise the repository's release or staging workflow if one exists.
-7. Update documentation and dependent repositories to the organization URL.
-8. Record the destination URL, commit SHA, workflow run, artifacts, and any deviations.
+6. Run the full CI workflow from the destination repository.
+7. Exercise the repository's release or staging workflow if one exists.
+8. Update documentation and dependent repositories to the organization URL.
+9. Restore the mirror into a temporary location and compare commit/tag history.
+10. Record the destination URL, commit SHA, workflow run, artifacts, mirror result, and
+    any deviations.
 
 Exit gate: the pilot has green CI, working required integrations, correct access, and a
 documented rollback path before the next repository is scheduled.
 
-## Phase 6 — Repeat staged transfers (O4)
+## Phase 6 — Repeat staged migrations (O4)
 
 For each remaining repository:
 
 - announce the window and freeze releases for the duration;
 - run the preparation checklist and record the source SHA;
-- transfer only that repository;
+- create or transfer only that repository according to its recorded migration mode;
 - recreate/verify Actions environments and secret names;
 - run CI and a repository-specific smoke test;
 - update cross-repository references and local remotes;
 - record evidence and obtain sign-off;
 - wait for the agreed observation period before migrating the next repository.
+
+For mirror-preserving migrations, the personal repository remains available as a recovery
+copy. For true GitHub transfers, preserve an independent local or offline mirror before
+accepting the transfer because the old personal URL may become only a redirect.
 
 Do not combine multiple repository transfers with dependency upgrades, schema migrations,
 Cloudflare changes, or broad credential rotation. Separate changes make failures
