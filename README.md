@@ -139,6 +139,7 @@ events are durable; live event delivery is a convenience view.
 - [Connector protocol](docs/CONNECTOR_PROTOCOL.md)
 - [Release policy](docs/RELEASE.md)
 - [Deployment readiness](docs/DEPLOYMENT.md)
+- [Cybercore organization migration plan](docs/ORG_MIGRATION_PLAN.md)
 - [Changelog](CHANGELOG.md)
 
 ## License
