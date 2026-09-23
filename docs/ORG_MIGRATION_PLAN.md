@@ -3,74 +3,289 @@
 ## Objective
 
 Move the Cybercore family of projects from the personal GitHub account into the
-`cybercore-tech` organization when each repository is ready, while preserving
-history, deployment continuity, secrets, and operator access.
+[`cybercore-tech`](https://github.com/cybercore-tech) organization while preserving
+history, CI, deployments, credentials, operator access, and rollback capability.
 
-This is a planned workstream only. No repository ownership or deployment target
-changes are authorized by this document.
+This is a staged ownership migration, not a single bulk transfer. No repository
+ownership, Cloudflare resource, DNS record, or production deployment changes are
+authorized by this document alone.
+
+## Guiding principles
+
+1. Inventory before changing anything.
+2. Migrate one repository at a time.
+3. Keep the current personal repositories and deployment resources as the source of
+   truth until the destination has passed its verification gate.
+4. Recreate and verify secrets by name and scope; never copy secret values into chat,
+   issues, commits, or logs.
+5. Keep GitHub repository ownership, Cloudflare resource ownership, and local operator
+   credentials as separate migration decisions.
+6. Migrate Mission Control last because it is deployment-critical and currently backs
+   the staging observation plane.
 
 ## Current state
 
 - Organization: `https://github.com/cybercore-tech`
-- Migration status: organization created; repository inventory and sequencing pending
+- Migration status: organization created; inventory and sequencing pending
 - Current Mission Control repository: `darkstardevx/cybercore-mission-control`
-- Current staging deployment: Cloudflare Worker and D1 resources remain under the existing account
-- Current CI: GitHub Actions deploys staging from the current repository after the protected CI gate
+- Current staging deployment: Cloudflare Worker and D1 resources remain under the
+  existing Cloudflare account
+- Current CI: GitHub Actions deploys staging from the current repository after the CI
+  gate and protected-environment controls
+- Current local operator state: connector credentials and Cloudflare Access service
+  credentials remain on the operator machine and are not repository assets
 
-## Milestones
+## Phase 0 — Freeze the migration boundary
 
-### O1 — Inventory and ownership map
+Before changing repository ownership:
 
-- List Cybercore-related repositories in the personal account.
-- Record each repository's purpose, default branch, active workflows, environments,
-  deploy targets, package registries, webhooks, collaborators, and required secrets.
-- Identify repositories that must remain personal or private.
-- Choose a migration order, starting with low-risk repositories and ending with
-  deployment-critical services.
+- Do not change Cloudflare account ownership, Worker names, D1 database IDs, DNS, or
+  Access applications as part of a GitHub transfer.
+- Do not rotate working production or staging credentials solely because a repository
+  is moving.
+- Do not commit `.env`, `.dev.vars`, connector credential files, Cloudflare service
+  token values, or GitHub secret values.
+- Select one migration owner and one rollback owner.
+- Choose a maintenance window for each repository with no release or schema migration
+  scheduled during that window.
 
-### O2 — Organization readiness
+Deliverable: a written list of repositories and infrastructure explicitly in and out of
+scope for this migration.
 
-- Confirm organization owners, repository visibility defaults, and two-factor authentication.
-- Create the required teams and least-privilege repository access.
-- Establish organization-level Actions policies and secret-management conventions.
-- Decide whether Cloudflare resources remain in the current account or move to an
-  organization-controlled account later; do not mix that decision with a repository transfer.
+## Phase 1 — Read-only repository inventory (O1)
 
-### O3 — Repository transfer preparation
+Create an inventory for every Cybercore-related repository in the personal account.
+For each repository record:
 
-- Update documentation, badges, workflow permissions, release URLs, and clone URLs
-  that hard-code the personal namespace.
-- Confirm all Actions secrets and environment variables can be recreated in the destination.
-- Confirm deploy keys, webhooks, GitHub Apps, branch protections, environments,
-  discussions, and package permissions.
-- Prepare a rollback record containing the original repository URL and verified commit SHA.
+- current URL, visibility, default branch, current head SHA, and last release;
+- purpose and dependency relationships;
+- collaborators, teams, outside collaborators, deploy keys, webhooks, and GitHub Apps;
+- branch protection, rulesets, required checks, environments, reviewers, and wait timers;
+- workflow files, reusable workflows, permissions, concurrency, and deployment targets;
+- Actions variables and secret names, without recording secret values;
+- package registries, release assets, Pages sites, container images, and external links;
+- Cloudflare Workers, D1 databases, Access applications, tunnels, DNS, and other
+  resources referenced by the repository;
+- local clones, remotes, release automation, and rollback contacts.
 
-### O4 — Staged repository transfers
+Recommended read-only checks for each local clone:
 
-- Transfer one repository at a time through GitHub's repository transfer flow.
-- Preserve the default branch and verify the automatic redirect from the old URL.
-- Recreate or validate Actions environments, reviewers, secrets, variables, and tokens.
-- Run the repository's CI and deployment smoke checks before moving to the next repository.
+```sh
+git remote -v
+git fetch --all --prune
+git rev-parse HEAD
+git status --short
+git fsck --full
+```
 
-### O5 — Mission Control transfer and post-transfer verification
+Recommended GitHub inventory fields:
 
-- Transfer `cybercore-mission-control` only after its staging deployment and rollback
-  evidence are current.
-- Verify the Actions `staging` environment, `CLOUDFLARE_ACCOUNT_ID`,
-  `CLOUDFLARE_API_TOKEN`, and `ADMIN_TOKEN` without exposing their values.
-- Verify the staging Worker, D1 binding, Cloudflare Access application, custom hostname,
-  connector heartbeat, live event stream, and release links.
-- Update local remotes and all cross-repository references to `cybercore-tech`.
-- Record the post-transfer commit, workflow run, deployment URL, and rollback owner.
+```text
+repository | visibility | default branch | head SHA | workflows | environments |
+secret names | variables | deploy target | packages | webhooks | owner | risk | order
+```
 
-## Exit criteria
+Deliverable: `cybercore-tech` migration inventory reviewed by the migration owner.
 
-The migration workstream is complete only when every selected repository has a verified
-organization URL, working CI, working required deployments, recreated access controls,
-documented secrets ownership, and a tested rollback path. Until then, the personal
-repositories remain the source of truth.
+## Phase 2 — Prepare the organization (O2)
+
+Configure the organization before transferring repositories:
+
+- Confirm at least two organization owners and enable strong account security.
+- Create teams based on responsibilities, not individual repositories; use least
+  privilege for write, maintain, triage, and admin access.
+- Set repository visibility and forking defaults deliberately.
+- Define who may create repositories, Actions workflows, environments, deploy keys,
+  and organization secrets.
+- Decide whether Actions are allowed to run from forks and whether approval is required
+  for first-time contributors.
+- Establish naming, issue labels, release, security reporting, and branch conventions.
+- Decide whether packages belong in the organization and which registries are supported.
+- Define the organization-level secret policy and the owner for each deployment secret.
+- Verify that required third-party GitHub Apps can be installed for the organization.
+
+Do not move Cloudflare ownership in this phase. The organization can own source code
+while the current Cloudflare account continues to own staging infrastructure.
+
+Deliverable: organization baseline approved and team access tested with a non-critical
+repository.
+
+## Phase 3 — Classify and sequence repositories (O1/O2)
+
+Use four risk classes:
+
+| Class | Repository type | Migration order |
+| --- | --- | --- |
+| A | Documentation, experiments, or non-deploying utilities | First |
+| B | Libraries, plugins, and local tools with release workflows | Early |
+| C | AgentForge or other shared orchestration projects | Middle |
+| D | Mission Control and repositories coupled to Cloudflare or live staging | Last |
+
+For each repository, identify whether it is:
+
+- transferred to `cybercore-tech`;
+- mirrored into the organization while remaining personal temporarily;
+- archived or consolidated;
+- intentionally retained in the personal account.
+
+The first pilot should be a Class A or low-risk Class B repository with no production
+deployment and no irreplaceable external integration.
+
+Deliverable: ordered migration queue with an owner, risk level, maintenance window,
+verification checklist, and rollback owner per repository.
+
+## Phase 4 — Prepare each repository (O3)
+
+Complete this checklist before transferring a repository:
+
+- Ensure the working tree is clean and the current head SHA is recorded.
+- Push or preserve all intended branches and tags.
+- Remove accidental secrets and rotate any credential that was ever committed.
+- Replace hard-coded personal namespace references in documentation, badges, workflow
+  permissions, release URLs, and dependency declarations where appropriate.
+- Confirm workflow permissions use the minimum required access.
+- Export the names of Actions secrets and variables, environment names, protection rules,
+  required reviewers, and required checks.
+- Confirm webhooks, deploy keys, GitHub Apps, package permissions, and release automation.
+- Record deployment URLs, resource identifiers, and the last known-good workflow run.
+- Capture a repository archive or verified clone for recovery.
+
+Do not replace secrets with temporary values just to make the transfer pass. If a secret
+cannot be recreated safely, stop that repository and resolve ownership first.
+
+Deliverable: transfer-ready repository checklist signed off by the repository owner.
+
+## Phase 5 — Pilot transfer (O4)
+
+Transfer the first low-risk repository and validate the complete lifecycle:
+
+1. Confirm the destination repository exists under `cybercore-tech`.
+2. Verify default branch, commit history, tags, releases, issues, discussions, and
+   visibility.
+3. Verify the old URL redirect and update local remotes only after the destination is
+   confirmed.
+4. Recreate or validate branch protections, rulesets, environments, variables, secrets,
+   webhooks, deploy keys, and GitHub App access.
+5. Run the full CI workflow from the destination repository.
+6. Exercise the repository's release or staging workflow if one exists.
+7. Update documentation and dependent repositories to the organization URL.
+8. Record the destination URL, commit SHA, workflow run, artifacts, and any deviations.
+
+Exit gate: the pilot has green CI, working required integrations, correct access, and a
+documented rollback path before the next repository is scheduled.
+
+## Phase 6 — Repeat staged transfers (O4)
+
+For each remaining repository:
+
+- announce the window and freeze releases for the duration;
+- run the preparation checklist and record the source SHA;
+- transfer only that repository;
+- recreate/verify Actions environments and secret names;
+- run CI and a repository-specific smoke test;
+- update cross-repository references and local remotes;
+- record evidence and obtain sign-off;
+- wait for the agreed observation period before migrating the next repository.
+
+Do not combine multiple repository transfers with dependency upgrades, schema migrations,
+Cloudflare changes, or broad credential rotation. Separate changes make failures
+diagnosable and rollback practical.
+
+## Phase 7 — Mission Control final migration gate (O5)
+
+Mission Control moves only after the previous phases are complete and staging is healthy.
+
+### Pre-transfer requirements
+
+- Current `main` CI is green and the release/deployment commit is recorded.
+- The staging dashboard, API, live event stream, agent registration, heartbeat, stale
+  detection, and audit history have all been verified.
+- The current Worker name, custom hostname, D1 database, Durable Object binding, and
+  Access application are documented.
+- The current GitHub `staging` environment has a complete secret/variable name inventory:
+  - `CLOUDFLARE_ACCOUNT_ID` variable;
+  - `CLOUDFLARE_API_TOKEN` secret;
+  - `ADMIN_TOKEN` secret.
+- The Cloudflare Access policy, service-token policy, and connector credential ownership
+  are recorded without exposing values.
+- A rollback owner can restore the previous known-good workflow and repository remote.
+
+### Transfer and rewire
+
+- Transfer `darkstardevx/cybercore-mission-control` to `cybercore-tech`.
+- Confirm the default branch, history, tags, workflows, issues, and repository visibility.
+- Recreate or validate the `staging` environment and its protection settings.
+- Re-add the required secret and variable names from the inventory; do not paste values
+  into the repository or chat.
+- Verify the Cloudflare API token is permitted to deploy the existing Worker/resources.
+- Update local remotes and repository links.
+- Run CI from the organization repository and wait for the automatic staging deployment.
+- Verify the staging URL, dashboard authentication, API authorization, event stream,
+  registered agent, heartbeat, online count, stale state, and recent audit event.
+- Confirm no D1 migration ran unintentionally during deployment.
+
+### Mission Control exit gate
+
+The transfer is accepted only when the organization repository has a green CI run, a
+successful staging deployment, a successful connector heartbeat, and recorded evidence
+for the checks above. If any gate fails, stop further transfers and restore the last
+verified source/deployment configuration.
+
+## Phase 8 — Post-migration cleanup
+
+After the observation period for all selected repositories:
+
+- update README badges, clone URLs, release links, documentation, and dependency references;
+- update local clones and remove stale personal remotes only after verification;
+- review organization audit logs, Actions history, deploy keys, webhooks, and installed Apps;
+- remove temporary transfer access and obsolete credentials;
+- archive or mark the personal repositories as redirected/migrated according to the chosen
+  policy; do not delete the source until retention requirements are satisfied;
+- update the ownership map, on-call contacts, secret rotation owners, and rollback records;
+- publish a short migration report with repository URLs, commit SHAs, workflow evidence,
+  deployment evidence, and unresolved follow-up work.
+
+## Cloudflare and credential boundary
+
+GitHub repository transfer does not automatically transfer Cloudflare resources. Keep these
+as separate workstreams:
+
+- GitHub organization ownership: source, workflows, issues, releases, and Actions settings.
+- Cloudflare account ownership: Workers, D1, Durable Objects, Access, DNS, and API tokens.
+- Operator machine: local connector credential and Cloudflare Access service-token files.
+
+For the current staging deployment, the safest first migration is to move source ownership
+while continuing to deploy the existing Cloudflare resources with a narrowly scoped token.
+Cloudflare account migration, if desired later, should receive its own plan and approval.
+
+## Risks and mitigations
+
+| Risk | Mitigation |
+| --- | --- |
+| Actions secrets or environment rules are missing after transfer | Inventory names first; recreate and run staging CI before accepting the transfer |
+| Cloudflare token cannot deploy from the new repository | Verify token scope and staging workflow before the Mission Control transfer |
+| Hidden webhook, App, or deploy-key dependency breaks | Inventory integrations and run a post-transfer event/deploy check |
+| Personal namespace remains in docs or automation | Search source, workflows, releases, and dependent repositories before sign-off |
+| Transfer is combined with unrelated code or infra changes | Freeze the migration boundary and use one repository/change class per window |
+| A credential is exposed during migration | Never place values in chat or commits; revoke and rotate immediately if exposed |
+| Rollback is unclear | Record source SHA, workflow run, destination state, and named rollback owner |
+
+## Definition of complete
+
+The migration is complete only when every selected repository has:
+
+- a verified `cybercore-tech` URL and preserved history;
+- working CI, required environments, integrations, and release automation;
+- documented secret ownership and recreated secret names;
+- verified staging/production behavior where applicable;
+- updated cross-repository references and local remotes;
+- a tested or explicitly accepted rollback path;
+- an owner for ongoing maintenance and credential rotation.
+
+Until those conditions are met, the personal repositories remain the operational source of
+truth.
 
 ## Immediate next action
 
-Start O1 with a read-only repository inventory. Do not transfer repositories, rotate
-credentials, or change Cloudflare ownership as part of the inventory.
+Start O1 with a read-only inventory of Cybercore repositories and integrations. Do not transfer
+repositories, rotate credentials, or change Cloudflare ownership during the inventory.
