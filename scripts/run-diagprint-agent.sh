@@ -42,7 +42,7 @@ fi
 install -d -m 700 "$config_dir"
 umask 077
 printf '%s\n' '{
-  "endpoint": "https://mission-control-staging.subgridsec.org",
+  "endpoint": "https://mission-control-staging.cybercoretech.net",
   "agent_id": "agt_adf47fda27c846b99b52e9ec7c7e0ecd",
   "status": "online",
   "payload": {
