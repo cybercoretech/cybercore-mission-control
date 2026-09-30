@@ -38,6 +38,15 @@
   "env": {
     "staging": {
       "name": "cybercore-mission-control-staging",
+      // Cloudflare Access-protected hostname. The Worker rejects *.workers.dev,
+      // so this is staging's only entry point; keep it in config so deploys
+      // don't drop a dashboard-only custom domain.
+      "routes": [
+        {
+          "pattern": "mission-control-staging.cybercoretech.net",
+          "custom_domain": true
+        }
+      ],
       "vars": {
         "ENVIRONMENT": "staging"
       },
