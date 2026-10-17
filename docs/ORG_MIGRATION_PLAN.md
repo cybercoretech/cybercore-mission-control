@@ -3,7 +3,7 @@
 ## Objective
 
 Move the Cybercore family of projects from the personal GitHub account into the
-[`cybercore-tech`](https://github.com/cybercoretech) organization while preserving
+[`cybercoretech`](https://github.com/cybercoretech) organization while preserving
 history, CI, deployments, credentials, operator access, and rollback capability.
 
 This is a staged ownership migration, not a single bulk transfer. No repository
@@ -53,7 +53,7 @@ use the wrapper pattern for reliable GitHub rendering.
 
 - The profile repository is public and named exactly `cybercore-tech`.
 - The README renders correctly on the organization profile without broken assets.
-- Every project tile points to the correct `cybercore-tech/<repository>` URL.
+- Every project tile points to the correct `cybercoretech/<repository>` URL.
 - No personal-account links remain except intentionally labeled archive/mirror links.
 - SVGs contain no credentials, host-specific tokens, private paths, or telemetry.
 - The Pages site, if enabled, has a working link from the README and passes keyboard and
@@ -80,7 +80,7 @@ Both namespaces can remain available, but they should not be independently writa
 The recommended model for each migrated repository is:
 
 ```text
-cybercore-tech/project  (canonical, writable)
+cybercoretech/project  (canonical, writable)
           |
           +--> darkstardevx/project  (read-only mirror / recovery copy)
           |
@@ -89,7 +89,7 @@ cybercore-tech/project  (canonical, writable)
 
 ### Canonical repository
 
-- `cybercore-tech/project` is the only repository where normal development occurs.
+- `cybercoretech/project` is the only repository where normal development occurs.
 - Pull requests, issues, releases, Actions workflows, and deployment decisions belong
   to the organization repository.
 - Its default branch and tags are protected.
@@ -195,7 +195,7 @@ repository | visibility | default branch | head SHA | workflows | environments |
 secret names | variables | deploy target | packages | webhooks | owner | risk | order
 ```
 
-Deliverable: `cybercore-tech` migration inventory reviewed by the migration owner.
+Deliverable: `cybercoretech` migration inventory reviewed by the migration owner.
 
 ## Phase 2 — Prepare the organization (O2)
 
@@ -233,7 +233,7 @@ Use four risk classes:
 
 For each repository, identify whether it is:
 
-- transferred to `cybercore-tech`;
+- transferred to `cybercoretech`;
 - mirrored into the organization while remaining personal temporarily;
 - archived or consolidated;
 - intentionally retained in the personal account.
@@ -270,7 +270,7 @@ Deliverable: transfer-ready repository checklist signed off by the repository ow
 Migrate the first low-risk repository using the mirror-preserving mode and validate the
 complete lifecycle:
 
-1. Create the destination repository under `cybercore-tech` without deleting or transferring
+1. Create the destination repository under `cybercoretech` without deleting or transferring
    the personal source.
 2. Verify default branch, commit history, tags, releases, issues, discussions, and
    visibility.
@@ -331,7 +331,7 @@ Mission Control moves only after the previous phases are complete and staging is
 
 ### Transfer and rewire
 
-- Transfer `darkstardevx/cybercore-mission-control` to `cybercore-tech`.
+- Transfer `darkstardevx/cybercore-mission-control` to `cybercoretech`.
 - Confirm the default branch, history, tags, workflows, issues, and repository visibility.
 - Recreate or validate the `staging` environment and its protection settings.
 - Re-add the required secret and variable names from the inventory; do not paste values
@@ -393,7 +393,7 @@ Cloudflare account migration, if desired later, should receive its own plan and 
 
 The migration is complete only when every selected repository has:
 
-- a verified `cybercore-tech` URL and preserved history;
+- a verified `cybercoretech` URL and preserved history;
 - working CI, required environments, integrations, and release automation;
 - documented secret ownership and recreated secret names;
 - verified staging/production behavior where applicable;
