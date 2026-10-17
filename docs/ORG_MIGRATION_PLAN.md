@@ -3,7 +3,7 @@
 ## Objective
 
 Move the Cybercore family of projects from the personal GitHub account into the
-[`cybercore-tech`](https://github.com/cybercore-tech) organization while preserving
+[`cybercore-tech`](https://github.com/cybercoretech) organization while preserving
 history, CI, deployments, credentials, operator access, and rollback capability.
 
 This is a staged ownership migration, not a single bulk transfer. No repository
@@ -18,9 +18,9 @@ assets. The two repositories do not exist yet and should be created during organ
 readiness:
 
 - `cybercore-tech/cybercore-tech` — public organization profile repository. Its root
-  `README.md` becomes the front page shown at `github.com/cybercore-tech`.
-- `cybercore-tech/cybercore-tech.github.io` — optional public GitHub Pages site for a
-  richer, fully interactive landing page at `cybercore-tech.github.io`.
+  `README.md` becomes the front page shown at `github.com/cybercoretech`.
+- `cybercore-tech/cybercoretech.github.io` — optional public GitHub Pages site for a
+  richer, fully interactive landing page at `cybercoretech.github.io`.
 
 ### Recommended presentation model
 
@@ -39,7 +39,7 @@ are not a reliable clickable surface there. The existing profile uses the correc
 wrap each tile image in an HTML anchor.
 
 ```html
-<a href="https://github.com/cybercore-tech/cybercore-mission-control">
+<a href="https://github.com/cybercoretech/cybercore-mission-control">
   <img src="./assets/tile-mission-control.svg" alt="Mission Control">
 </a>
 ```
@@ -135,7 +135,7 @@ local clone and its commit, tag, and release history has been verified.
 
 ## Current state
 
-- Organization: `https://github.com/cybercore-tech`
+- Organization: `https://github.com/cybercoretech`
 - Migration status: organization created; inventory and sequencing pending
 - Current Mission Control repository: `darkstardevx/cybercore-mission-control`
 - Current staging deployment: Cloudflare Worker and D1 resources remain under the
