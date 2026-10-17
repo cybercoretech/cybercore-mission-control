@@ -17,9 +17,9 @@ existing `darkstardevx` profile design, but with organization-owned names, links
 assets. The two repositories do not exist yet and should be created during organization
 readiness:
 
-- `cybercore-tech/cybercore-tech` — public organization profile repository. Its root
+- `cybercoretech/cybercore-tech` — public organization profile repository. Its root
   `README.md` becomes the front page shown at `github.com/cybercoretech`.
-- `cybercore-tech/cybercoretech.github.io` — optional public GitHub Pages site for a
+- `cybercoretech/cybercoretech.github.io` — optional public GitHub Pages site for a
   richer, fully interactive landing page at `cybercoretech.github.io`.
 
 ### Recommended presentation model
