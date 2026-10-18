@@ -1,5 +1,7 @@
 # Cybercore Mission Control
 
+[![CI](https://github.com/cybercoretech/cybercore-mission-control/actions/workflows/ci.yml/badge.svg)](https://github.com/cybercoretech/cybercore-mission-control/actions/workflows/ci.yml) · [Project site](https://cybercoretech.github.io/cybercore-mission-control/) · [Architecture](docs/ARCHITECTURE.md) · [Security boundary](docs/SECURITY.md)
+
 Private observation plane for the Cybercore ecosystem.
 
 Mission Control records projects, machines, agents, heartbeats, runs, and audit events while keeping
