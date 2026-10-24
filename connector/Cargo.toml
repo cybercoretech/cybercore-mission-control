@@ -1,6 +1,6 @@
 [package]
 name = "cybercore-agent"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.80"
 description = "Outbound-only heartbeat connector for Cybercore Mission Control"
@@ -10,7 +10,6 @@ repository = "https://github.com/cybercoretech/cybercore-mission-control"
 homepage = "https://github.com/cybercoretech/cybercore-mission-control"
 keywords = ["cybercore", "heartbeat", "connector", "observability"]
 categories = ["command-line-utilities", "network-programming"]
-publish = false
 
 [dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }

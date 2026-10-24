@@ -1,3 +1,12 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cybercoretech/cybercore-mission-control/main/connector/assets/cybercore-agent-card.svg" alt="Cybercore Agent — bounded outbound heartbeat connector for Mission Control">
+</p>
+
+<p align="center">
+  <a href="https://crates.io/crates/cybercore-agent"><img src="https://img.shields.io/crates/v/cybercore-agent.svg" alt="crates.io"></a>
+  <a href="https://docs.rs/cybercore-agent"><img src="https://img.shields.io/docsrs/cybercore-agent" alt="docs.rs"></a>
+</p>
+
 # cybercore-agent
 
 Release-candidate outbound-only Rust connector for Cybercore Mission Control.
